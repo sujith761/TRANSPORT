@@ -20,9 +20,16 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 const server = http.createServer(app);
+
+const defaultOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_URL].filter(Boolean);
+const corsOrigins = Array.from(new Set([...defaultOrigins, ...allowedOrigins]));
+
+const isDev = process.env.NODE_ENV !== 'production';
+
 const io = socketIO(server, {
   cors: {
-    origin: [process.env.CLIENT_URL, process.env.ADMIN_URL],
+    origin: isDev ? true : corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }
@@ -49,7 +56,18 @@ app.use(helmet());
 
 // Enable CORS
 app.use(cors({
-  origin: [process.env.CLIENT_URL, process.env.ADMIN_URL],
+  origin: (origin, callback) => {
+    if (isDev) {
+      return callback(null, true);
+    }
+    if (!origin) {
+      return callback(null, true);
+    }
+    if (corsOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
