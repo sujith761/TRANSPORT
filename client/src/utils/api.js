@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://kasc-transport.onrender.com';
+const API_URL = process.env || 'https://kasc-transport.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
